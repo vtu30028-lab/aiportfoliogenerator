@@ -3,6 +3,15 @@ import axios from 'axios';
 
 export const AuthContext = createContext();
 
+// Ensure every outgoing axios request attaches Authorization token if present
+axios.interceptors.request.use(config => {
+    const token = localStorage.getItem('token');
+    if (token && !config.headers.Authorization) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+}, error => Promise.reject(error));
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -12,8 +21,13 @@ export const AuthProvider = ({ children }) => {
             const token = localStorage.getItem('token');
             const storedUser = localStorage.getItem('user');
             if (token && storedUser) {
-                setUser(JSON.parse(storedUser));
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                try {
+                    setUser(JSON.parse(storedUser));
+                    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                } catch (e) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                }
             }
             setLoading(false);
         };
@@ -29,7 +43,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const register = async (username, email, password) => {
-        await axios.post('http://localhost:5000/api/auth/register', { username, email, password });
+        const res = await axios.post('http://localhost:5000/api/auth/register', { username, email, password });
+        return res.data;
     };
 
     const logout = () => {
