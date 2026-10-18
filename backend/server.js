@@ -13,6 +13,7 @@ app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/resume', require('./src/routes/resumeRoutes'));
 app.use('/api/portfolio', require('./src/routes/portfolioRoutes'));
 app.use('/api/job', require('./src/routes/jobRoutes'));
+app.use('/api/ai', require('./src/routes/aiRoutes'));
 
 // Global error handler
 app.use((err, req, res, next) => {
